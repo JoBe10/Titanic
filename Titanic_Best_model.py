@@ -14,9 +14,9 @@ train = pd.read_csv('/Users/Jonas/Desktop/DataScience/Kaggle/Titanic/CSVs/train.
 test = pd.read_csv('/Users/Jonas/Desktop/DataScience/Kaggle/Titanic/CSVs/test.csv')
 
 # Get some insights into the data
-# print(train.info())
-# print(train.describe())
-# print(train.head())
+print(train.info())
+print(train.describe())
+print(train.head())
 
 # Embarked, Cabin and Age have missing values
 # Embarked only has two missing values and can be either dropped or filled with the most common value
@@ -25,9 +25,11 @@ test = pd.read_csv('/Users/Jonas/Desktop/DataScience/Kaggle/Titanic/CSVs/test.cs
 train['Embarked'].fillna(train.Embarked.value_counts().idxmax(), inplace=True)
 
 # Does the embarking port impact the odds of survival?
-# print(train.groupby('Embarked').Survived.mean())
+print(train.groupby('Embarked').Survived.mean())
+
 # It appears as though overall Cherbourg embarkers were more likely to survive, what about a breakdown by gender?
-# print(train.groupby(['Embarked', 'Sex']).Survived.mean())
+print(train.groupby(['Embarked', 'Sex']).Survived.mean())
+
 # Women were, once again, a lot more likely to survive than men and had extremely good chances if they boarded in
 # Cherbourg or Queenstown
 
@@ -36,35 +38,37 @@ train['Embarked'] = train['Embarked'].map({'S': 0, 'Q': 1, 'C': 2})
 
 # Fill the missing ages with the average age
 train.Age.fillna(train.Age.mean(), inplace=True)
-# print(train.groupby(['Survived', 'Sex']).Age.value_counts(bins = 10))
+
+# Inspect survival rates by gender grouped nto 10 bins
+print(train.groupby(['Survived', 'Sex']).Age.value_counts(bins = 10))
 # Most men that died were between 22 and 31
 # Most women that survived were between 25 and 32
 
 # Inspect differences in survival chances by age and gender
 
 # Create variables for men
-# men = train[train['Sex'] == 'male']
-# men_survived = men[men['Survived'] == 1]
-# men_died = men[men['Survived'] == 0]
+men = train[train['Sex'] == 'male']
+men_survived = men[men['Survived'] == 1]
+men_died = men[men['Survived'] == 0]
 
 # Plot a histogram for men
-# plt.hist(men_survived.Age, bins=18, label='Survived', alpha=0.5)
-# plt.hist(men_died.Age, bins=40, label='Died', alpha=0.5)
-# plt.show()
-# plt.clf()
+plt.hist(men_survived.Age, bins=18, label='Survived', alpha=0.5)
+plt.hist(men_died.Age, bins=40, label='Died', alpha=0.5)
+plt.show()
+plt.clf()
 
 # It appears as though men at a really young age (babies) and in their early 30s were most likely to survive
 
 # Create variables for women
-# women = train[train['Sex'] == 'female']
-# women_survived = women[women['Survived'] == 1]
-# women_died = women[women['Survived'] == 0]
+women = train[train['Sex'] == 'female']
+women_survived = women[women['Survived'] == 1]
+women_died = women[women['Survived'] == 0]
 
 # Plot a histogram for women
-# plt.hist(women_survived.Age, bins=18, label='Survived', alpha=0.5)
-# plt.hist(women_died.Age, bins=40, label='Died', alpha=0.5)
-# plt.show()
-# plt.clf()
+plt.hist(women_survived.Age, bins=18, label='Survived', alpha=0.5)
+plt.hist(women_died.Age, bins=40, label='Died', alpha=0.5)
+plt.show()
+plt.clf()
 
 # It appears as though women that were teenagers or in their mid-20s to mid-30s were most likely to survive
 
@@ -72,8 +76,8 @@ train.Age.fillna(train.Age.mean(), inplace=True)
 train['age_groups'] = train.Age.transform(lambda x: pd.qcut(x, 7, labels=range(7)))
 
 # Inspect the Cabin column
-# cabins = train[train['Cabin'].notnull()].Cabin
-# print(cabins)
+cabins = train[train['Cabin'].notnull()].Cabin
+print(cabins)
 # The cabins include the decks
 # Maybe certain decks had a higher chance of survival
 
@@ -84,11 +88,11 @@ train.Cabin.fillna('Z', inplace=True)
 train['Deck'] = [cab[0] for cab in train.Cabin]
 
 # Look at the odds of survival by deck
-# print(train.groupby('Decks').Survived.mean())
+print(train.groupby('Decks').Survived.mean())
 # It looks as though decks B to F had decent survival rates overall but what about a gender breakdown?
 
 # Look at the odds of survival by deck and by gender
-# print(train.groupby(['Decks', 'Sex']).Survived.mean())
+print(train.groupby(['Decks', 'Sex']).Survived.mean())
 # It appears as though women on most decks had an extremely high chance of survival!
 
 # Group decks into being in B to F or not
@@ -107,7 +111,7 @@ clean_title = [tit[:-1] for tit in title]
 train['title'] = clean_title
 
 #Inspect the different possible titles
-# print(train.title.value_counts())
+print(train.title.value_counts())
 # There seem to be a lot of wrong values that, luckily, in total are only a few
 # Let's give all of those values a vale 'NR' for 'Not Relevant' instead
 
@@ -119,7 +123,7 @@ titles_to_remove = titles[4:]
 train['title'] = train.title.apply(lambda x: 'NR' if x in titles_to_remove else x)
 
 # Investigate survival chances by title
-# print(train.groupby('title').Survived.mean())
+print(train.groupby('title').Survived.mean())
 # Mrs has the highest chances, closely followed by Miss
 # Master has substantially higher chances than Mr
 
@@ -197,6 +201,8 @@ train_data, test_data, train_labels, test_labels = train_test_split(features, la
 
 # Create and fit Random Forest and remember to change the input to all of the feature and label data
 forest = RandomForestClassifier(n_estimators= 1000, min_samples_split= 5, min_samples_leaf= 2, max_features= 'sqrt', max_depth= 10, bootstrap= True)
+
+# Run the randomized search cross validation with 300 (100x3) random runs to get best parameters for RF
 # forest_random = RandomizedSearchCV(estimator = forest, param_distributions = random_grid, n_iter = 100, cv = 3, verbose=2, random_state=42, n_jobs = -1)
 # forest_random.fit(train_data, train_labels)
 
